@@ -1,3 +1,4 @@
+import cvxopt
 import numpy as np
 from cvxopt import solvers, matrix, spmatrix, spdiag, sparse
 import matplotlib.pyplot as plt
@@ -13,7 +14,27 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     :param trainy: numpy array of size (m, 1) containing the labels of the training sample
     :return: linear predictor w, a numpy array of size (d, 1)
     """
-    raise NotImplementedError()
+    m, d = trainX.shape
+    H = spmatrix([2 * l] * d, range(d), range(d), size=(m + d, m + d))
+    A = define_A(trainX, trainy)
+    u = matrix([0] * d + [1/m] * m)
+    v = matrix( [1] * m + [0] * m, tc = 'd')
+    sol = solvers.qp(H, u, -A, -v)
+    w = np.array(sol['x'][:d])
+    return w
+
+
+def define_A(X: np.array, y: np.array):
+    m, d = X.shape
+    down_left = spmatrix([], [], [], size=(m, d))
+    up_right = spmatrix(1, range(m), range(m))
+
+    up_left = matrix(np.array([[y[i] * X[i][j] for j in range(d)] for i in range(m)]))
+    down_right = spmatrix(1, range(m), range(m))
+
+    A = sparse([[up_left, down_left], [up_right, down_right]])
+    return A
+
 
 def simple_test():
     # load question 2 data
