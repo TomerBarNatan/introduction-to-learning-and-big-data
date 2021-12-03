@@ -16,9 +16,11 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     """
     m, d = trainX.shape
     H = spmatrix([2 * l] * d, range(d), range(d), size=(m + d, m + d))
+    epsilon = spmatrix(10^12, range(d), range(d), size = H.size)
+    # H = H + epsilon
     A = define_A(trainX, trainy)
-    u = matrix([0] * d + [1/m] * m)
-    v = matrix( [1] * m + [0] * m, tc = 'd')
+    u = matrix([0] * d + [1 / m] * m)
+    v = matrix([1] * m + [0] * m, tc='d')
     sol = solvers.qp(H, u, -A, -v)
     w = np.array(sol['x'][:d])
     return w
@@ -67,8 +69,61 @@ def simple_test():
     print(f"The {i}'th test sample was classified as {predicty}")
 
 
+def get_data():
+    data = np.load('EX2q2_mnist.npz')
+    return data['Xtrain'], data['Xtest'], data['Ytrain'], data['Ytest']
+
+
+def get_train_sample(size, trainX, trainy):
+    indices = np.random.permutation(trainX.shape[0])
+    _trainX = trainX[indices[:size]]
+    _trainy = trainy[indices[:size]]
+    return _trainX, _trainy
+
+
+def first_experiment():
+    trainX, testX, trainy, testy = get_data()
+    num_of_iterations = 1
+    m = 100
+    ls = [10 ** i for i in range(1,10)]
+    avg_errors_train, max_errors_train, min_errors_train = [], [], []
+    avg_errors_test, max_errors_test, min_errors_test = [], [], []
+    for l in ls:
+        curr_max_train, curr_min_train = 0, 1
+        curr_max_test, curr_min_test = 0, 1
+        accum_error_train, accum_error_test = 0, 0
+        for iter in range(num_of_iterations):
+            _trainX, _trainy = get_train_sample(m, trainX, trainy)
+            w = softsvm(l, _trainX, _trainy)
+            train_pred = np.sign(_trainX @ w)
+            test_pred = np.sign(testX @ w)
+            train_error = np.mean(_trainy != train_pred.T)
+            test_error = np.mean(testy != test_pred.T)
+
+            accum_error_train += train_error
+            accum_error_test += test_error
+
+            curr_min_train = curr_min_train if curr_min_train < train_error else train_error
+            curr_max_train = curr_max_train if curr_max_train > train_error else train_error
+            curr_min_test = curr_min_test if curr_min_test < test_error else test_error
+            curr_max_test = curr_max_test if curr_max_test > test_error else test_error
+
+        min_errors_train.append(min_errors_train)
+        max_errors_train.append(max_errors_train)
+        avg_errors_train.append(accum_error_train/num_of_iterations)
+        min_errors_test.append(min_errors_test)
+        max_errors_test.append(max_errors_test)
+        avg_errors_test.append(accum_error_test/num_of_iterations)
+
+    # ax = plt.axes()
+    # ax.set_xscale("log")
+    plt.errorbar(ls,avg_errors_test, yerr= (min_errors_test, max_errors_test))
+    plt.show()
+
+
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    simple_test()
+    # simple_test()
 
     # here you may add any code that uses the above functions to solve question 2
+    first_experiment()
