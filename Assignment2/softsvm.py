@@ -16,7 +16,7 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     """
     m, d = trainX.shape
     H = spmatrix([2 * int(l)] * d, range(d), range(d), size=(m + d, m + d))
-    epsilon = spmatrix(10^12, range(d), range(d), size = H.size)
+    # epsilon = spmatrix(10^12, range(d), range(d), size = H.size)
     # H = H + epsilon
     A = define_A(trainX, trainy)
     u = matrix([0] * d + [1 / m] * m)
