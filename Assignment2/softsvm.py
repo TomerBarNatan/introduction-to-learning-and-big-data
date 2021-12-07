@@ -15,9 +15,12 @@ def softsvm(l, trainX: np.array, trainy: np.array):
     :return: linear predictor w, a numpy array of size (d, 1)
     """
     m, d = trainX.shape
-    H = spmatrix([2 * int(l)] * d, range(d), range(d), size=(m + d, m + d))
-    # epsilon = spmatrix(10^12, range(d), range(d), size = H.size)
-    # H = H + epsilon
+    if l < 10 ** 10:
+        H = spmatrix(2 * l, range(d), range(d), size=(m + d, m + d))
+    else:
+        H = matrix(np.diag([2 * l] * d + [0] * m))
+        epsilon = spmatrix(0, range(d), range(d), size=H.size)
+        H = H + epsilon
     A = define_A(trainX, trainy)
     u = matrix([0] * d + [1 / m] * m)
     v = matrix([1] * m + [0] * m, tc='d')
@@ -30,8 +33,7 @@ def define_A(X: np.array, y: np.array):
     m, d = X.shape
     down_left = spmatrix([], [], [], size=(m, d))
     up_right = spmatrix(1, range(m), range(m))
-
-    up_left = matrix(np.array([[y[i] * X[i][j] for j in range(d)] for i in range(m)]))
+    up_left = matrix(X * y.reshape(-1, 1))
     down_right = spmatrix(1, range(m), range(m))
 
     A = sparse([[up_left, down_left], [up_right, down_right]])
@@ -81,7 +83,7 @@ def get_train_sample(size, trainX, trainy):
     return _trainX, _trainy
 
 
-def experiment(train_size, ls, num_of_iterations):
+def experiment(train_size, ls, num_of_iterations, linesyle="solid", error_bars=True):
     trainX, testX, trainy, testy = get_data()
     avg_errors_train, max_errors_train, min_errors_train = [], [], []
     avg_errors_test, max_errors_test, min_errors_test = [], [], []
@@ -107,25 +109,28 @@ def experiment(train_size, ls, num_of_iterations):
 
         min_errors_train.append(curr_min_train)
         max_errors_train.append(curr_max_train)
-        avg_errors_train.append(accum_error_train/num_of_iterations)
+        avg_errors_train.append(accum_error_train / num_of_iterations)
         min_errors_test.append(curr_min_test)
         max_errors_test.append(curr_max_test)
-        avg_errors_test.append(accum_error_test/num_of_iterations)
+        avg_errors_test.append(accum_error_test / num_of_iterations)
 
     ax = plt.axes()
     ax.set_xscale("log")
     plt.title(f"Average Error Soft Svm with QP. train size= {train_size}")
     plt.xlabel("Lambda in semilog scale")
     plt.ylabel("Error")
-    plt.errorbar(ls,avg_errors_test, yerr = (min_errors_test, max_errors_test))
-    plt.errorbar(ls,avg_errors_train, yerr = (min_errors_train, max_errors_train))
+    yerr_test = (min_errors_test, max_errors_test) if error_bars else None
+    yerr_train = (min_errors_train, max_errors_train) if error_bars else None
+    plt.errorbar(ls, avg_errors_test, yerr=yerr_test, ls=linesyle, fmt='o')
+    plt.errorbar(ls, avg_errors_train, yerr=yerr_train, ls=linesyle, fmt='o')
     plt.legend(["test set", "train set"])
     plt.show()
+
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
     # simple_test()
 
     # here you may add any code that uses the above functions to solve question 2
-    experiment(100,[10 ** i for i in range(10)], 10)
-    experiment(1000,[10 ** i for i in [1,3,5,8]], 1)
+    experiment(100, [10 ** i for i in range(1, 11)], 10)
+    experiment(1000, [10 ** i for i in [1, 3, 5, 8]], 1, linesyle="None", error_bars=False)

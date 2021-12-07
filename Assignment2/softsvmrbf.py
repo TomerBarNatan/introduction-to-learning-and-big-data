@@ -18,8 +18,8 @@ def softsvmbf(l: float, sigma: float, trainX: np.array, trainy: np.array):
     G = matrix([[gaussian_kernel(trainX[i], trainX[j], sigma) for j in range(m)] for i in range(m)], tc='d')
     zeros = spmatrix([], [], [], (m, m))
     H = sparse([[2 * l * G, zeros], [zeros, zeros]])
-    epsilon = spmatrix(1/20, range(2*m), range(2*m), size = H.size)
-    H = H + epsilon
+    epsilon = spmatrix(1 / (10000), range(2 * m), range(2 * m), size=H.size)
+    # H = H + epsilon
     A = define_A(G, trainy)
     u = matrix([0] * m + [1 / m] * m)
     v = matrix([1] * m + [0] * m, tc='d')
@@ -30,7 +30,7 @@ def softsvmbf(l: float, sigma: float, trainX: np.array, trainy: np.array):
 
 def define_A(G: np.matrix, y: np.array):
     m = G.size[1]
-    up_left = matrix([[y[i][0] * G[i, j] for j in range(m)] for i in range(m)], tc='d')
+    up_left = matrix(G * y.reshape(-1, 1))
     up_right = spmatrix(1, range(m), range(m))
     down_right = spmatrix(1, range(m), range(m))
     down_left = spmatrix([], [], [], (m, m))
@@ -72,7 +72,7 @@ def get_data():
 
 def task_4a():
     trainX, _, trainy, _ = get_data()
-    colors = ['red' if trainy[i] == 1 else 'blue' for i in range(trainy.shape[0])]
+    colors = ['blue' if trainy[i] == 1 else 'red' for i in range(trainy.shape[0])]
     plt.scatter(trainX[:, 0], trainX[:, 1], c=colors)
     plt.title("Q4 Data")
     plt.show()
@@ -148,9 +148,9 @@ def k_fold_softsvmbf(num_of_folds, sigmas, ls):
 
 def task_4d():
     l = 100
-    sigmas = [0.5, 1]
+    sigmas = [0.01, 0.5, 1]
     trainX, _, trainy, _ = get_data()
-    grid_size = 100
+    grid_size = 200
     x_axis = np.linspace(np.min(trainX[:, 0]) - 2, np.max(trainX[:, 0]) + 2, grid_size)
     y_axis = np.linspace(np.min(trainX[:, 1]) - 2, np.max(trainX[:, 1]) + 2, grid_size)
     for sigma in sigmas:
@@ -159,16 +159,19 @@ def task_4d():
         for i in range(grid_size):
             print(i)
             for j in range(grid_size):
-                preds[i][j] = np.sign(np.sum([alpha[k] * gaussian_kernel(trainX[k], [x_axis[i], y_axis[j]], sigma) for k in range(trainX.shape[0])]))
-                if preds[i][j] == 0:
-                    preds[i][j] = 1
-        plt.contourf(x_axis, y_axis, preds,colors = ['r','b'])
+                preds[i][j] = np.sign(np.sum(
+                    [alpha[k] * gaussian_kernel(trainX[k], [x_axis[i], y_axis[j]], sigma) for k in
+                     range(trainX.shape[0])]))
+                # if preds[i][j] == 0:
+                #     preds[i][j] = 1
+        plt.contourf(x_axis, y_axis, preds, colors=['r', 'b'])
         plt.show()
+
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
     # simple_test()
-    # task_4a()
+    task_4a()
     # task_4b()
     task_4d()
     # here you may add any code that uses the above functions to solve question 4
