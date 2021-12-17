@@ -1,0 +1,23 @@
+softsvmrbf:
+
+error of sigma = 0.01, l = 1 is 0.0805
+error of sigma = 0.01, l = 10 is 0.0805
+error of sigma = 0.01, l = 100 is 0.0805
+
+error of sigma = 0.5, l = 1 is 0.0685
+error of sigma = 0.5, l = 10 is 0.0685
+error of sigma = 0.5, l = 100 is 0.0685
+
+error of sigma = 1, l = 10 is 0.08800000000000001
+error of sigma = 1, l = 100 is 0.08800000000000001
+error of sigma = 1, l = 100 is 0.08800000000000001
+
+Error for sigma = 0.5, l = 10 on test set is 0.045
+
+softsvm:
+error of l = 1 is 00000000001
+error of l = 10 is 0.5002800000000001
+error of l = 100 is 0.5002800000000001
+
+Error for best l = 1 on test set is 0.5
+0.50028

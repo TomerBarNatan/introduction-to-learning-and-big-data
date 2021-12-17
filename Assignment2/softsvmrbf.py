@@ -19,7 +19,7 @@ def softsvmbf(l: float, sigma: float, trainX: np.array, trainy: np.array):
     zeros = spmatrix([], [], [], (m, m))
     H = sparse([[2 * l * G, zeros], [zeros, zeros]])
     epsilon = spmatrix(1 / (10000), range(2 * m), range(2 * m), size=H.size)
-    # H = H + epsilon
+    H = H + epsilon
     A = define_A(G, trainy)
     u = matrix([0] * m + [1 / m] * m)
     v = matrix([1] * m + [0] * m, tc='d')
@@ -79,7 +79,7 @@ def task_4a():
 
 
 def task_4b():
-    k_fold_softsvmbf(num_of_folds=5, sigmas=[0.01, 0.5, 1], ls=[1, 10, 100])
+    k_fold_softsvmbf(num_of_folds=5, sigmas=[0.5, 1], ls=[10, 100])
     k_fold_softsvm(num_of_folds=5, ls=[1, 10, 100])
 
 
@@ -121,6 +121,7 @@ def k_fold_softsvmbf(num_of_folds, sigmas, ls):
     for sigma in sigmas:
         for l in ls:
             accum_error = 0
+            subsamples_inx = [fold_size * i for i in range(num_of_folds)]
             for inx in subsamples_inx:
                 trainX_exclude, trainy_exclude = trainX[inx:inx + fold_size], trainy[inx:inx + fold_size]
                 trainX_include = np.concatenate((trainX[:inx], trainX[inx + fold_size:]))
@@ -157,21 +158,18 @@ def task_4d():
         alpha = softsvmbf(l, sigma, trainX, trainy)
         preds = np.zeros((grid_size, grid_size))
         for i in range(grid_size):
-            print(i)
             for j in range(grid_size):
                 preds[i][j] = np.sign(np.sum(
                     [alpha[k] * gaussian_kernel(trainX[k], [x_axis[i], y_axis[j]], sigma) for k in
                      range(trainX.shape[0])]))
-                # if preds[i][j] == 0:
-                #     preds[i][j] = 1
         plt.contourf(x_axis, y_axis, preds, colors=['r', 'b'])
         plt.show()
 
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    # simple_test()
+    simple_test()
     task_4a()
-    # task_4b()
+    task_4b()
     task_4d()
     # here you may add any code that uses the above functions to solve question 4

@@ -129,8 +129,8 @@ def experiment(train_size, ls, num_of_iterations, linesyle="solid", error_bars=T
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    # simple_test()
+    simple_test()
 
     # here you may add any code that uses the above functions to solve question 2
-    experiment(100, [10 ** i for i in range(1, 11)], 10)
+    experiment(100, [10 ** i for i in range(1, 11)], 11)
     experiment(1000, [10 ** i for i in [1, 3, 5, 8]], 1, linesyle="None", error_bars=False)
