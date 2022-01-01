@@ -85,7 +85,7 @@ def simple_test():
 
     x_train, y_train = gensmallm([train3, train5], [-1, 1], m)
 
-    x_test, y_test = gensmallm([test3, train5], [-1, 1], n)
+    x_test, y_test = gensmallm([test3, test5], [-1, 1], n)
 
     # threshold the images (binarization)
     threshold = 128
@@ -105,11 +105,54 @@ def simple_test():
     assert isinstance(y_predict, np.ndarray), "The output of the function bayespredict should be numpy arrays"
     assert y_predict.shape == (n, 1), f"The output of bayespredict should be of size ({n}, 1)"
 
-    print(f"Prediction error = {np.mean(y_test.reshape(n,1) != y_predict)}")
+    print(f"Prediction error = {np.mean(y_test.reshape(n, 1) != y_predict)}")
+
+
+def extract_data(first_num, sec_num):
+    data = np.load('mnist_all.npz')
+
+    train_first = data[f'train{first_num}']
+    train_sec = data[f'train{sec_num}']
+
+    test_first = data[f'test{first_num}']
+    test_sec = data[f'test{sec_num}']
+
+    return train_first, test_first, train_sec, test_sec
+
+
+def task_2a():
+    train_sizes = [i * 1000 for i in range(1, 11)]
+    for first, sec in [(3,5),(0,1)]:
+        errors = []
+        for train_size in train_sizes:
+            train3, test3, train5, test5 = extract_data(first, sec)
+            x_train, y_train = gensmallm([train3, train5], [-1, 1], train_size)
+            x_test, y_test = gensmallm([test3, test5], [-1, 1], test3.shape[0] + test5.shape[0])
+            threshold = 128
+            x_train = np.where(x_train > threshold, 1, 0)
+            x_test = np.where(x_test > threshold, 1, 0)
+            allpos, ppos, pneg = bayeslearn(x_train, y_train)
+            y_predict = bayespredict(allpos, ppos, pneg, x_test)
+            errors.append(np.mean(y_test.reshape(test3.shape[0] + test5.shape[0], 1) != y_predict))
+        plt.plot(train_sizes, errors)
+    plt.show()
+
+
+def task_2c():
+    train0, _, train1, _ = extract_data(0,1)
+    x_train, y_train = gensmallm([train0, train1], [-1, 1], 10000)
+    threshold = 128
+    x_train = np.where(x_train > threshold, 1, 0)
+    _, ppos, pneg = bayeslearn(x_train, y_train)
+    plt.imshow(ppos.reshape(28,28), cmap='hot')
+    plt.show()
+    plt.imshow(pneg.reshape(28,28), cmap='hot')
+    plt.show()
+
 
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
-    simple_test()
-
+    # simple_test()
     # here you may add any code that uses the above functions to solve question 2
+    task_2c()
