@@ -150,9 +150,31 @@ def task_2c():
     plt.show()
 
 
+def task_2d():
+    for first, sec in [(0,1),(3,5)]:
+        train_first, test_first, train_sec, test_sec = extract_data(first,sec)
+        x_train, y_train = gensmallm([train_first, train_sec], [-1, 1], 10000)
+        threshold = 128
+        x_train = np.where(x_train > threshold, 1, 0)
+        allpos, ppos, pneg = bayeslearn(x_train, y_train)
+        x_test, y_test = gensmallm([test_first, test_sec], [-1, 1], test_first.shape[0] + test_sec.shape[0])
+        x_test = np.where(x_test > threshold, 1, 0)
+        y_origin_allpos = bayespredict(allpos, ppos, pneg, x_test)
+        y_new_allpos = bayespredict(0.75, ppos, pneg, x_test)
+        err_orig_allpos = np.mean(y_test.reshape(test_first.shape[0] + test_sec.shape[0], 1) != y_origin_allpos)
+        err_new_allpos = np.mean(y_test.reshape(test_first.shape[0] + test_sec.shape[0], 1) != y_new_allpos)
+        
+        print(f"[{first},{sec}] :error with original allpos {allpos} is {err_orig_allpos} error with allpos 0.75 is {err_new_allpos}")
+
+        changed_from_1 = len(np.where(y_origin_allpos[np.where(y_new_allpos == -1)[0]] == 1)[0])/ len(np.where(y_origin_allpos == 1)[0])
+        print(f"% of cahnge from 1 to -1: {changed_from_1}")
+
+        changed_to_1 = len(np.where(y_origin_allpos[np.where(y_new_allpos == 1)[0]] == -1)[0])/ len(np.where(y_origin_allpos == -1)[0])
+        print(f"% of cahnge from -1 to 1: {changed_to_1}")
+
 
 if __name__ == '__main__':
     # before submitting, make sure that the function simple_test runs without errors
     # simple_test()
     # here you may add any code that uses the above functions to solve question 2
-    task_2c()
+    task_2d()
