@@ -32,7 +32,21 @@ def bayeslearn(x_train: np.array, y_train: np.array):
     :param y_train: numpy array of size (m, 1) containing the labels of the training set
     :return: a triple (allpos, ppos, pneg) the estimated conditional probabilities to use in the Bayes predictor
     """
-    raise NotImplementedError()
+    num_of_features = x_train.shape[1]
+    allpos = (y_train > 0).sum() / y_train.shape[0]
+    pos_y = np.where(y_train == 1)[0]
+    if len(pos_y) == 0:
+        ppos = np.full([num_of_features, 1], np.nan)
+    else:
+        ppos = (np.sum(x_train[pos_y], axis=0) / len(pos_y)).reshape(num_of_features, 1)
+
+    neg_y = np.where(y_train == -1)[0]
+    if len(neg_y) == 0:
+        pneg = np.full([num_of_features, 1], np.nan)
+    else:
+        pneg = (np.sum(x_train[neg_y], axis=0) / len(neg_y)).reshape(num_of_features, 1)
+
+    return allpos, ppos, pneg
 
 
 def bayespredict(allpos: float, ppos: np.array, pneg: np.array, x_test: np.array):
@@ -44,9 +58,14 @@ def bayespredict(allpos: float, ppos: np.array, pneg: np.array, x_test: np.array
     :param x_test: numpy array of size (n, d) containing the test samples
     :return: numpy array of size (n, 1) containing the predicted labels of the test samples
     """
-    raise NotImplementedError()
+    preds = np.sign([compute_row(row, allpos, ppos, pneg) for row in x_test])
+    return preds
 
 
+def compute_row(row, allpos, ppos, pneg):
+    return np.log(allpos / (1 - allpos)) + np.sum(
+        [np.log(ppos[i][0] / pneg[i][0]) if row[i] == 1 else -1 * np.log((1 - pneg[i]) / (1 - ppos[i])) for i in
+         range(len(row))])
 
 
 def simple_test():
@@ -86,8 +105,7 @@ def simple_test():
     assert isinstance(y_predict, np.ndarray), "The output of the function bayespredict should be numpy arrays"
     assert y_predict.shape == (n, 1), f"The output of bayespredict should be of size ({n}, 1)"
 
-    print(f"Prediction error = {np.mean(y_test != y_predict)}")
-
+    print(f"Prediction error = {np.mean(y_test.reshape(n,1) != y_predict)}")
 
 
 if __name__ == '__main__':
