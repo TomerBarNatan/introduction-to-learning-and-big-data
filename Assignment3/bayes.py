@@ -135,6 +135,9 @@ def task_2a():
             y_predict = bayespredict(allpos, ppos, pneg, x_test)
             errors.append(np.mean(y_test.reshape(test3.shape[0] + test5.shape[0], 1) != y_predict))
         plt.plot(train_sizes, errors)
+    plt.legend(["3 vs 5", "0 vs 1"])
+    plt.xlabel("sample size")
+    plt.ylabel("error")
     plt.show()
 
 
@@ -144,9 +147,12 @@ def task_2c():
     threshold = 128
     x_train = np.where(x_train > threshold, 1, 0)
     _, ppos, pneg = bayeslearn(x_train, y_train)
-    plt.imshow(ppos.reshape(28,28), cmap='hot')
+    im = plt.imshow(ppos.reshape(28,28), cmap='hot')
+    plt.colorbar(im)
+    plt.title("ppos heatmap")
     plt.show()
     plt.imshow(pneg.reshape(28,28), cmap='hot')
+    plt.title("pneg heatmap")
     plt.show()
 
 
